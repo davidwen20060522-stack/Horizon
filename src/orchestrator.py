@@ -93,6 +93,7 @@ class BalancedDigestResult:
     group_counts: Dict[str, int] = field(default_factory=dict)
     group_limits: Dict[str, Optional[int]] = field(default_factory=dict)
     duplicate_categories: List[str] = field(default_factory=list)
+    backfilled: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -968,18 +969,21 @@ class HorizonOrchestrator:
         group_counts: Dict[str, int] = defaultdict(int)
         default_group = digest.default_group
 
-        for item in sorted_items:
+        def group_key_for(item: ContentItem) -> str:
             if digest.group_by == "profile":
                 category = (
                     item.processing.classification.profile if item.processing else None
                 )
             else:
                 category = item.metadata.get("category")
-            group_key = (
+            return (
                 category_to_group.get(category, default_group)
                 if isinstance(category, str)
                 else default_group
             )
+
+        for item in sorted_items:
+            group_key = group_key_for(item)
 
             if group_key in groups:
                 limit = groups[group_key].limit
@@ -991,6 +995,43 @@ class HorizonOrchestrator:
 
             selected.append((item, group_key))
             group_counts[group_key] += 1
+
+        # 2B quality-first backfill: slots left empty because some group could
+        # not fill its quota are given to the highest-scoring items still in
+        # the global overflow pool. Thresholds are NOT lowered — every
+        # candidate here already passed its profile threshold in the
+        # upstream filter stage; we only stop enforcing per-group ceilings.
+        backfilled: List[str] = []
+        capacity = (
+            max_items
+            if max_items is not None
+            else sum(g.limit for g in groups.values())
+            + (digest.default_group_limit or 0)
+        )
+        remaining = capacity - len(selected)
+        if remaining > 0:
+            chosen = {id(item) for item, _ in selected}
+            for item in sorted_items:  # already score-descending
+                if remaining <= 0:
+                    break
+                if id(item) in chosen:
+                    continue
+                group_key = group_key_for(item)
+                selected.append((item, group_key))
+                group_counts[group_key] += 1
+                backfilled.append(item.title)
+                chosen.add(id(item))
+                remaining -= 1
+            if log and backfilled:
+                self.console.print(
+                    f"{self.icons['balance']} Backfilled {len(backfilled)} "
+                    f"slot(s) from overflow pool (quality-first, group caps "
+                    f"lifted)"
+                )
+                for title in backfilled:
+                    self.console.print(
+                        f"      {self.icons['detail']} + {title}"
+                    )
 
         if max_items is not None:
             selected = selected[:max_items]
@@ -1036,6 +1077,7 @@ class HorizonOrchestrator:
             group_counts=dict(final_counts),
             group_limits=group_limits,
             duplicate_categories=sorted(set(duplicate_categories)),
+            backfilled=backfilled,
         )
 
     async def _expand_twitter_discussion(self, items: List[ContentItem]) -> None:

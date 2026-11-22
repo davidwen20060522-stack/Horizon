@@ -305,40 +305,28 @@
       "tech-blog"
     ],
     "category_groups": {
-      "politics": {
-        "name": "世界政治",
-        "limit": 2,
-        "categories": [
-          "world-politics"
-        ]
-      },
-      "china_asia": {
-        "name": "中国与亚洲",
-        "limit": 3,
-        "categories": [
-          "china-asia"
-        ]
-      },
-      "finance": {
-        "name": "环球金融",
-        "limit": 3,
-        "categories": [
-          "finance-news"
-        ]
-      },
-      "business": {
-        "name": "商业",
-        "limit": 3,
-        "categories": [
-          "business-news"
-        ]
-      },
       "tech": {
         "name": "AI与科技",
-        "limit": 4,
+        "limit": 8,
         "categories": [
           "tech-news",
           "tech-blog"
+        ]
+      },
+      "finance_business": {
+        "name": "金融与商业",
+        "limit": 3,
+        "categories": [
+          "finance-news",
+          "business-news"
+        ]
+      },
+      "china_world": {
+        "name": "中国与世界",
+        "limit": 3,
+        "categories": [
+          "china-asia",
+          "world-politics"
         ]
       }
     },
