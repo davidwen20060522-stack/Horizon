@@ -126,20 +126,55 @@ def _validate(payload: dict):
 
 
 def get_previous_archive():
-    result = subprocess.run(
-        ["git", "show", "origin/gh-pages:news/archive.json"],
-        capture_output=True,
-        text=True,
-    )
+    """Read previous archive from gh-pages with EXPLICIT failure semantics.
 
-    if result.returncode != 0:
+    - gh-pages branch absent (first-ever deploy) -> [] is correct.
+    - branch exists but ref/blob unreadable -> raise: the silent
+      archive-shrink path (git show rc!=0 without proof of absence) is banned.
+    """
+    probe = subprocess.run(["git", "ls-remote", "--heads", "origin", "gh-pages"],
+                           capture_output=True, text=True)
+    if probe.returncode != 0:
+        raise RuntimeError("cannot probe origin/gh-pages (ls-remote failed): "
+                           + probe.stderr.strip()[:200])
+    if not probe.stdout.strip():
+        print("archive: no gh-pages branch yet (first deploy) — starting fresh")
         return []
 
-    try:
-        data = json.loads(result.stdout)
-        return data if isinstance(data, list) else []
-    except json.JSONDecodeError:
-        return []
+    # ensure a real remote-tracking ref: bare `git fetch origin gh-pages` only
+    # writes FETCH_HEAD, which `git show origin/gh-pages:...` cannot resolve
+    if subprocess.run(["git", "rev-parse", "--verify", "origin/gh-pages"],
+                      capture_output=True).returncode != 0:
+        fetched = subprocess.run(
+            ["git", "fetch", "origin",
+             "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"],
+            capture_output=True, text=True)
+        if fetched.returncode != 0:
+            raise RuntimeError("gh-pages exists on origin but fetch failed: "
+                               + fetched.stderr.strip()[:200])
+
+    blob = subprocess.run(["git", "cat-file", "-e", "origin/gh-pages:news/archive.json"],
+                          capture_output=True)
+    if blob.returncode == 0:
+        result = subprocess.run(
+            ["git", "show", "origin/gh-pages:news/archive.json"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError("git show failed on existing archive blob: "
+                               + result.stderr.strip()[:200])
+        try:
+            data = json.loads(result.stdout)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"previous archive.json unparseable: {exc}")
+        if not isinstance(data, list):
+            raise RuntimeError("previous archive.json is not a list")
+        print(f"archive: merged onto previous ({len(data)} entries)")
+        return data
+
+    print("archive: gh-pages has no news/archive.json yet — starting fresh")
+    return []
 
 
 def main():
@@ -170,6 +205,10 @@ def main():
     if error:
         raise SystemExit(f"Schema validation failed: {error}")
 
+    # archive read BEFORE any write: if gh-pages state is broken we fail
+    # without having produced partial outputs
+    archive = get_previous_archive()
+
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for filename in ["latest.json", f"{date}.json"]:
@@ -178,7 +217,6 @@ def main():
             encoding="utf-8",
         )
 
-    archive = get_previous_archive()
     archive = [
         item for item in archive
         if item.get("date") != date

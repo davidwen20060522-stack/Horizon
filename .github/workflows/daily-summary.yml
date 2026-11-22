@@ -46,7 +46,8 @@ jobs:
         run: uv run horizon --hours 24
 
       - name: Fetch existing Pages archive
-        run: git fetch origin gh-pages || true
+        run: |
+          git fetch origin +refs/heads/gh-pages:refs/remotes/origin/gh-pages || echo "::warning::gh-pages fetch failed; export will fail explicitly if archive is unreachable"
 
       - name: Export news JSON
         run: python scripts/export_news_json.py
