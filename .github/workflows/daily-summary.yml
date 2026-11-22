@@ -2,7 +2,12 @@
 name: Daily Horizon Summary
 
 on:
+  schedule:
+    - cron: '0 0 * * *'  # UTC 00:00 = 北京时间 08:00
   workflow_dispatch:
+
+concurrency:
+  group: gh-pages-deploy
 
 jobs:
   daily-summary:
@@ -37,6 +42,7 @@ jobs:
       - name: Run Horizon
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub 源限流 60→5000 req/h
         run: uv run horizon --hours 24
 
       - name: Fetch existing Pages archive

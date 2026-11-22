@@ -8,8 +8,7 @@
     "max_tokens": 8192,
     "throttle_sec": 1,
     "languages": [
-      "zh",
-      "en"
+      "zh"
     ],
     "analysis_concurrency": 5,
     "enrichment_concurrency": 5
@@ -28,6 +27,18 @@
       },
       "finance-news": {
         "threshold": 7.0,
+        "topic_dedup": true
+      },
+      "business-news": {
+        "threshold": 6.5,
+        "topic_dedup": true
+      },
+      "china-asia": {
+        "threshold": 6.0,
+        "topic_dedup": true
+      },
+      "world-politics": {
+        "threshold": 6.5,
         "topic_dedup": true
       }
     }
@@ -97,7 +108,10 @@
         "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
         "enabled": true,
         "category": "finance",
-        "profile": "finance-news",
+        "profile": [
+          "finance-news",
+          "business-news"
+        ],
         "content_extractor": "trafilatura"
       },
       {
@@ -120,6 +134,111 @@
         "enabled": true,
         "category": "linux-kernel",
         "profile": "tech-news"
+      },
+      {
+        "name": "GN AI Frontier",
+        "url": "https://news.google.com/rss/search?q=%28AI%20OR%20LLM%20OR%20%22artificial%20intelligence%22%29%20when:1d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "ai-global",
+        "profile": [
+          "tech-news"
+        ]
+      },
+      {
+        "name": "GN World Markets",
+        "url": "https://news.google.com/rss/search?q=%28stock%20market%20OR%20%22central%20bank%22%20OR%20inflation%29%20when:1d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "finance-global",
+        "profile": [
+          "finance-news"
+        ]
+      },
+      {
+        "name": "GN M&A and Funding",
+        "url": "https://news.google.com/rss/search?q=%28merger%20OR%20acquisition%20OR%20funding%20OR%20IPO%29%20when:1d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "business",
+        "profile": [
+          "business-news",
+          "finance-news"
+        ]
+      },
+      {
+        "name": "GN China Economy",
+        "url": "https://news.google.com/rss/search?q=%E4%B8%AD%E5%9B%BD%E7%BB%8F%E6%B5%8E%20OR%20%E4%B8%AD%E5%9B%BD%E6%94%BF%E7%AD%96%20when:1d&hl=zh-CN&gl=CN&ceid=CN:zh-Hans",
+        "enabled": true,
+        "category": "china-macro",
+        "profile": [
+          "china-asia",
+          "business-news"
+        ]
+      },
+      {
+        "name": "GN China Chips",
+        "url": "https://news.google.com/rss/search?q=%E8%8A%AF%E7%89%87%20OR%20%E5%8D%8A%E5%AF%BC%E4%BD%93%20OR%20AI%E5%9F%BA%E5%BB%BA%20when:2d&hl=zh-CN&gl=CN&ceid=CN:zh-Hans",
+        "enabled": true,
+        "category": "china-tech",
+        "profile": [
+          "china-asia",
+          "tech-news"
+        ]
+      },
+      {
+        "name": "GN Geopolitics",
+        "url": "https://news.google.com/rss/search?q=%28sanctions%20OR%20diplomacy%20OR%20ceasefire%20OR%20election%29%20when:2d&hl=en-US&gl=US&ceid=US:en",
+        "enabled": true,
+        "category": "world-politics",
+        "profile": [
+          "world-politics"
+        ]
+      },
+      {
+        "name": "BBC World",
+        "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "enabled": true,
+        "category": "world",
+        "profile": [
+          "world-politics",
+          "china-asia"
+        ]
+      },
+      {
+        "name": "Al Jazeera",
+        "url": "https://www.aljazeera.com/xml/rss/all.xml",
+        "enabled": true,
+        "category": "world",
+        "profile": [
+          "world-politics"
+        ]
+      },
+      {
+        "name": "Guardian World",
+        "url": "https://www.theguardian.com/world/rss",
+        "enabled": true,
+        "category": "world",
+        "profile": [
+          "world-politics"
+        ]
+      },
+      {
+        "name": "NYT World",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+        "enabled": true,
+        "category": "world",
+        "profile": [
+          "world-politics",
+          "china-asia"
+        ]
+      },
+      {
+        "name": "Jiemian News",
+        "url": "https://a.jiemian.com/index.php?m=article&a=rss",
+        "enabled": true,
+        "category": "china-business",
+        "profile": [
+          "china-asia",
+          "business-news"
+        ]
       }
     ],
     "reddit": {
@@ -154,24 +273,77 @@
           "channel": "zaihuapd",
           "enabled": true,
           "fetch_limit": 20,
-          "profile": ["tech-news", "finance-news"]
+          "profile": [
+            "tech-news",
+            "finance-news"
+          ]
         }
       ]
+    },
+    "gdelt": {
+      "enabled": true,
+      "query": "(sanctions OR geopolitics OR \"south china sea\")",
+      "mode": "ArtList",
+      "max_records": 50,
+      "timespan": "1d",
+      "category": "gdelt-politics",
+      "profile": "world-politics"
     }
   },
   "collection": {
     "time_window_hours": 24
   },
   "digest": {
-    "max_items": null,
+    "max_items": 15,
+    "group_by": "profile",
     "profile_order": [
+      "world-politics",
+      "china-asia",
+      "finance-news",
+      "business-news",
       "tech-news",
-      "tech-blog",
-      "finance-news"
+      "tech-blog"
     ],
-    "category_groups": {},
+    "category_groups": {
+      "politics": {
+        "name": "世界政治",
+        "limit": 2,
+        "categories": [
+          "world-politics"
+        ]
+      },
+      "china_asia": {
+        "name": "中国与亚洲",
+        "limit": 3,
+        "categories": [
+          "china-asia"
+        ]
+      },
+      "finance": {
+        "name": "环球金融",
+        "limit": 3,
+        "categories": [
+          "finance-news"
+        ]
+      },
+      "business": {
+        "name": "商业",
+        "limit": 3,
+        "categories": [
+          "business-news"
+        ]
+      },
+      "tech": {
+        "name": "AI与科技",
+        "limit": 4,
+        "categories": [
+          "tech-news",
+          "tech-blog"
+        ]
+      }
+    },
     "default_group": "other",
-    "default_group_limit": null
+    "default_group_limit": 1
   },
   "webhook": {
     "enabled": true,
