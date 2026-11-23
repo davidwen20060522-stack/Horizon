@@ -12,6 +12,6 @@ Evaluate the importance of timely technology news for readers interested in soft
 
 # Evaluation guidance
 
-Consider technical depth, novelty, likely impact, source quality, relevance to software engineering and AI systems, and concrete supporting details. Treat substantive community debate as additional evidence of value, but do not equate popularity with technical importance. Do not reward exaggerated headlines.
+Consider technical depth, novelty, likely impact, source quality, relevance to software engineering and AI systems, and concrete supporting details. Treat substantive community debate as additional evidence of value, but do not equate popularity with technical importance. Do not reward exaggerated headlines. Hardware weight (2C): explicitly boost items about chips/semiconductors, consumer-electronics product lines, devices, robotics, and hardware supply-chain shifts — for this reader, a concrete hardware or AI-product story ranks on par with, or above, an equivalent software-only development; model releases with clear device/consumer consequences score at the top of their band.
 
 Use three to five specific topic tags.

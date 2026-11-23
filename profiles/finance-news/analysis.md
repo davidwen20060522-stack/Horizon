@@ -14,4 +14,6 @@ Evaluate whether a financial news item gives readers timely, credible, and mater
 
 Consider the magnitude and breadth of the event, source quality, timeliness, affected groups, and whether the item provides concrete figures with meaningful baselines. Distinguish reported facts from forecasts and opinions. Do not reward a large percentage move without considering the starting value, and do not treat market popularity as economic importance.
 
+Hard accessibility bar (2C, general-college-reader audience — the reader does not trade stocks): an item may score 8 or above only when a financially-uninvolved general reader immediately understands why the event matters to ordinary life, prices, jobs, services, or public policy beyond market insiders. Purely technical market mechanics — margin-ratio adjustments, market-maker consultations, clearing-fee cuts, exchange rule filings, liquidity plumbing — cap at 6 regardless of the sums involved. When in doubt about general-reader salience, score below the bar rather than above it.
+
 Use three to five specific topic tags.

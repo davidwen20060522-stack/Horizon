@@ -12,6 +12,6 @@ Evaluate whether a business news item reveals a concrete, consequential change i
 
 # Evaluation guidance
 
-Reward verifiable transactions, named amounts, and concrete operational change. Distinguish announced intent from closed deals. Penalize items whose significance rests only on brand fame.
+Reward verifiable transactions, named amounts, and concrete operational change. Distinguish announced intent from closed deals. Penalize items whose significance rests only on brand fame. General-reader salience (2C): prefer stories whose consequence is felt by consumers, workers, or everyday products and services; deals meaningful only to investors or sector specialists score at the lower end of their band.
 
 Use three to five specific topic tags.

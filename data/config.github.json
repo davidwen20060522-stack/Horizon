@@ -26,7 +26,7 @@
         "topic_dedup": false
       },
       "finance-news": {
-        "threshold": 7.0,
+        "threshold": 8.0,
         "topic_dedup": true
       },
       "business-news": {
@@ -307,7 +307,7 @@
     "category_groups": {
       "tech": {
         "name": "AI与科技",
-        "limit": 8,
+        "limit": 10,
         "categories": [
           "tech-news",
           "tech-blog"
@@ -315,7 +315,7 @@
       },
       "finance_business": {
         "name": "金融与商业",
-        "limit": 3,
+        "limit": 1,
         "categories": [
           "finance-news",
           "business-news"
