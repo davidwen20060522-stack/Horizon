@@ -11,7 +11,7 @@ import json
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 SUMMARY_DIR = Path("data/summaries")
@@ -22,6 +22,10 @@ _ITEM_HEAD = re.compile(
     r'^### \[((?:\\.|[^\\\]])+)\]\((\S+?)\) ⭐️ ([\d.]+|\?)/10$', re.MULTILINE)
 _GROUP_HEAD = re.compile(r'^## (.+)$', re.MULTILINE)
 _CN_TIME = re.compile(r'(\d{1,2})月(\d{1,2})日\s+(\d{2}:\d{2})')
+_BG_BLOCK = re.compile(
+    r'^\*\*「([^」]*(?:背景|[Bb]ackground)[^」]*)」\*\*\s*(.*)$', re.MULTILINE)
+_TAGS_LINE = re.compile(r'^\*\*(?:标签|Tags)\*\*[:：]\s*(.*)$', re.MULTILINE)
+SCHEMA_VERSION = 2
 
 
 def _unescape(text: str) -> str:
@@ -90,6 +94,15 @@ def _parse_summary(markdown: str, date: str):
                             pass
                     break
 
+            # v3: background & tags for the site detail page (4 blocks)
+            bg = _BG_BLOCK.search(chunk)
+            background = _unescape(bg.group(2)) if bg else None
+            tm_line = _TAGS_LINE.search(chunk)
+            tags = []
+            if tm_line:
+                tags = [t for t in (x.strip().strip("`").lstrip("#")
+                                    for x in tm_line.group(1).split(",")) if t]
+
             items.append({
                 "id": hashlib.sha1(url.encode("utf-8")).hexdigest()[:12],
                 "title": title,
@@ -99,6 +112,8 @@ def _parse_summary(markdown: str, date: str):
                 "summary": summary,
                 "importance": importance,
                 "category": cat_id,
+                "background": background,
+                "tags": tags,
             })
         if items:
             results.append({"id": cat_id, "name": raw_name, "items": items})
@@ -184,15 +199,22 @@ def main():
         raise SystemExit("No Chinese summary found. Publishing stopped.")
 
     source = files[-1]
-    date = source.name[len("horizon-"):-len("-zh.md")]
-
-    datetime.strptime(date, "%Y-%m-%d")
+    summary_date = source.name[len("horizon-"):-len("-zh.md")]
+    datetime.strptime(summary_date, "%Y-%m-%d")
+    # v3 日期口径：顶层 date = 运行日（Asia/Shanghai），非新闻事件日。
+    # Horizon 08:00 CST 跑统计过去 24h，页面当"今日简报"呈现。
+    cst = timezone(timedelta(hours=8))
+    date = datetime.now(cst).strftime("%Y-%m-%d")
+    if date != summary_date:
+        print(f"NOTE: run-date {date} != summary-file date {summary_date}; "
+              f"using run-date per v3 spec")
 
     markdown = source.read_text(encoding="utf-8")
-    categories = _parse_summary(markdown, date)
+    categories = _parse_summary(markdown, summary_date)
     total = sum(len(c["items"]) for c in categories)
 
     payload = {
+        "version": SCHEMA_VERSION,
         "date": date,
         "title": f"Horizon 每日简报 · {date}",
         "timezone": "Asia/Shanghai",
